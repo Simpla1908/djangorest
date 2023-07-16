@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from .serializer import ProductSerializer
 
 from rest_framework import  generics,mixins
-from api.mixins import StaffEditorPermissionsMixin
+from api.mixins import StaffEditorPermissionsMixin,UserQuerrySetMixin
 
 
 class DetailProductView(generics.RetrieveAPIView):
@@ -15,9 +15,11 @@ class DetailProductView(generics.RetrieveAPIView):
 
 class ListCreateProductView(
     StaffEditorPermissionsMixin,
+    UserQuerrySetMixin,
     generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    user_field='user'
     #authentication_classes=[authentication.SessionAuthentication,TokenAuthentication] on l'a deja configuré par defaut dans le setting
     # permission_classes=[permissions.IsAuthenticatedOrReadOnly]
     #permission_classes=[permissions.DjangoModelPermissions]
@@ -29,10 +31,13 @@ class ListCreateProductView(
         content = serializer.validated_data.get('content') or None
         if content is None:
             content = name
-        serializer.save(content=content)
+        serializer.save(content=content,user=self.request.user)
+    
+   
 
 class UpdateProductView(
     StaffEditorPermissionsMixin,
+    UserQuerrySetMixin,
     generics.UpdateAPIView):  
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -45,7 +50,8 @@ class UpdateProductView(
         serializer.save(content=content)  
 
 class DeleteProductView(
-    StaffEditorPermissionsMixin
+    StaffEditorPermissionsMixin,
+    UserQuerrySetMixin
     ,generics.DestroyAPIView):
     
     queryset = Product.objects.all()
